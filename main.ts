@@ -358,13 +358,13 @@ function convertToStitchPattern(
 
       // 将边的整数化距离转换为指令
       const instructionCounts = new Map<string, number>();
-      
+
       // 统计每种类型指令的数量
       discretizedLayerEdges.forEach((distance, edge) => {
         const type = ["SL", layerIndex == 0 ? "CH" : "X", "T", "F", "E"][distance];
         instructionCounts.set(type, (instructionCounts.get(type) || 0) + 1);
       });
-      
+
       // 将统计结果转换为指令数组
       instructionCounts.forEach((count, type) => {
         instructions.push({
@@ -391,6 +391,40 @@ function convertToStitchPattern(
   });
 
   return stitchParts;
+}
+
+/**
+ * 将图解结构体转换为可读的图解文字
+ * @param stitchParts 图解结构体数组
+ * @returns 可读的图解文字
+ */
+function convertToReadablePattern(stitchParts: StitchPart[]): string {
+  let result = '';
+
+  stitchParts.forEach(part => {
+    // 添加部件标题
+    result += `P${part.id}: ${part.description}\n`;
+
+    // 添加每一轮的指令
+    part.rounds.forEach(round => {
+      // 开始一个新的轮次
+      result += `R${round.roundNumber}: `;
+
+      // 添加该轮的所有指令
+      const instructionTexts = round.instructions.map(instruction => {
+        return `${instruction.count}${instruction.type}`;
+      });
+
+      // 将指令连接起来
+      result += instructionTexts.join(', ');
+      result += '\n';
+    });
+
+    // 在不同部件之间添加空行
+    result += '\n';
+  });
+
+  return result.trim();
 }
 
 // 示例使用
@@ -555,5 +589,16 @@ layers.forEach((layer, layerIndex) => {
 const stitchPattern = convertToStitchPattern(layers, graph, vertices, objectNames);
 
 // 打印图解语言
-console.log("\n图解语言:");
-console.log(JSON.stringify(stitchPattern, null, 2)); 
+console.log("\n图解语言 (JSON格式):");
+console.log(JSON.stringify(stitchPattern, null, 2));
+
+// 转换为可读的图解文字
+const readablePattern = convertToReadablePattern(stitchPattern);
+
+// 打印可读的图解文字
+console.log("\n图解语言 (可读文本格式):");
+console.log(readablePattern);
+
+// 将可读的图解文字保存到文件
+// fs.writeFileSync('pattern.txt', readablePattern);
+// console.log("\n图解语言已保存到 pattern.txt 文件"); 
